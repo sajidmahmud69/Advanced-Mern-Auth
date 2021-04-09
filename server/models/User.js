@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import bcrypt from 'bcrypt'
 
 const UserSchema = mongoose.Schema ({
     username: {
@@ -24,6 +25,18 @@ const UserSchema = mongoose.Schema ({
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+})
+
+// run this function before saving it into the DB
+UserSchema.pre ("save", async function (next) {
+    // next is a middleware
+    if (!this.isModified ("password")){     // if the password is not modified don't rehash it
+        next ()
+    }
+
+    const salt = await bcrypt.genSalt (10)
+    this.password  = await bcrypt.hash (this.password, salt)
+    next ()
 })
 
 const User = mongoose.model ("User", UserSchema)

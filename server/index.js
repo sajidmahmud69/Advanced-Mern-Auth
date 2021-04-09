@@ -1,7 +1,7 @@
 import express from 'express'
-import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import auth from './routes/auth.js'
+import connectDB from './config/db.js'
 
 // app config
 dotenv.config ()
@@ -17,17 +17,8 @@ app.use (express.json())
 */
 app.use ('/api/auth', auth)
 
-// db config
-// const DB_NAME = process.env.DB_NAME
-// const DB_PASSWORD = process.env.DB_PASSWORD
-// const CONNECTION_URL = null
-
-// mongoose.connect (CONNECTION_URL, {
-//     useCreateIndex: true,
-//     useNewUrlParser: true, 
-//     useUnifiedTopology: true
-// }, () => console.log (`Database Connection Successful...`))
-
+// Connect the DB
+connectDB ()
 
 
 // routes
