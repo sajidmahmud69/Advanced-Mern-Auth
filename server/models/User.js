@@ -39,6 +39,13 @@ UserSchema.pre ("save", async function (next) {
     next ()
 })
 
+
+UserSchema.methods.matchPassword = async function (password) {
+    // password is provided by the user through the form and this.password is the password that DB found 
+    // for that corresponding email
+    return await bcrypt.compare (password, this.password)
+}
+
 const User = mongoose.model ("User", UserSchema)
 
 export default User

@@ -27,5 +27,9 @@ app.get ('/', (req, res) => {
 })
 
 // listener
-app.listen (PORT, () => console.log (`Server running on ${PORT}`))
+const server = app.listen (PORT, () => console.log (`Server running on ${PORT}`))
 
+process.on ("unhandledRejection", (err, promise) => {
+    console.log (`Logged Error: ${err}`)
+    server.close (() => process.exit (1))
+})
