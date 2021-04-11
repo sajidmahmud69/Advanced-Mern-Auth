@@ -1,7 +1,10 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import auth from './routes/auth.js'
+import privateRoute from './routes/private.js'
 import connectDB from './config/db.js'
+import errorHandler from './middleware/error.js'
+
 
 // app config
 dotenv.config ()
@@ -16,6 +19,10 @@ app.use (express.json())
    folder and see which matching function to call  
 */
 app.use ('/api/auth', auth)
+app.use ('/api/private', privateRoute)
+
+// ERROR handler (SHOULD be last piece of middleware)
+app.use (errorHandler)
 
 // Connect the DB
 connectDB ()

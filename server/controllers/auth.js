@@ -1,4 +1,6 @@
 import User from '../models/User.js'
+import ErrorResponse from '../utils/errorResponse.js'
+import errorResponse from '../utils/errorResponse.js'
 
 
 // handles register route functionality
@@ -9,15 +11,9 @@ const register = async (req, res, next) => {
         const user = await User.create ({
             username, email, password
         })
-        res.status (201).json ({
-            success: true,
-            user
-        })
+        sendToken (user, 201, res)
     }catch (err){
-        res.status (500).json ({
-            success : false,
-            error: err.message
-        })
+        next (err)
     }
 }
 
@@ -27,7 +23,7 @@ const login = async (req, res, next) => {
     
     // check that both email and password field has some value
     if (!email || ! password) {
-        res.status (400).json ({ success: false , error: "Please provide email and password" })
+        return next (new ErrorResponse ("Please provide email and password", 400))
     }
     
     try {
@@ -35,20 +31,19 @@ const login = async (req, res, next) => {
         
         // if no user is found throw an error
         if (!user){
-            res.status (404).json ({ success: false, error: "Invalid Credentials" })
+            return next (new ErrorResponse ("Invalid Credentials", 401))
         }
         
         // see if the entered password match with the db password
         const isMatch = await user.matchPassword (password)
-
+        
+        // if password doesn't match throw an error
         if (!isMatch) {
-            res.status (404).json ({ success: true, error: "Invalid Credentials"})
+            return next (new ErrorResponse ("Invalid Credentials", 401))
         }
-
-        res.status (200).json ({
-            success: true,
-            token: "THISISTOKEN"
-        })
+        
+        sendToken (user, 200, res)
+        
         
     }catch (err) {
         res.status (500).json ({
@@ -71,5 +66,10 @@ const resetPassword = (req, res, next) => {
     res.send ('Reset Password Route')
 }
 
+
+const sendToken = (user, statusCode, res) => {
+    const token = user.getSignedToken ()        // should return a token
+    res.status (statusCode).json  ({ success: true, token })
+}
 
 export { register, login, forgotPassword, resetPassword }       // named exports

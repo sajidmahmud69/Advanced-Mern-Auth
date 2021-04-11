@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
 const UserSchema = mongoose.Schema ({
     username: {
@@ -44,6 +45,11 @@ UserSchema.methods.matchPassword = async function (password) {
     // password is provided by the user through the form and this.password is the password that DB found 
     // for that corresponding email
     return await bcrypt.compare (password, this.password)
+}
+
+UserSchema.methods.getSignedToken = function () {
+    // getting a token for signing in
+    return jwt.sign ({ id: this._id }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_EXPIRE_TIME })
 }
 
 const User = mongoose.model ("User", UserSchema)
