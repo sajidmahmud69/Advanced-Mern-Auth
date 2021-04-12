@@ -113,7 +113,7 @@ function RegisterScreen({ history }) {
                         />
                     </div>
                 <button type = "submit" className = "btn btn-primary">Register</button>
-                <span className = "register-screen__subtext">Already have an account? <Link to = '/login' />Login</span>
+                <span className = "register-screen__subtext">Already have an account? <Link to = '/login'>Login </Link></span>
             </form>
 
         </div>
