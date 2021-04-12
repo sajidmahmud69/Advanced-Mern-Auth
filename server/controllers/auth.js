@@ -1,6 +1,7 @@
 import User from '../models/User.js'
 import ErrorResponse from '../utils/errorResponse.js'
 import errorResponse from '../utils/errorResponse.js'
+import sendEmail from '../utils/sendEmail.js'
 
 
 // handles register route functionality
@@ -56,8 +57,54 @@ const login = async (req, res, next) => {
 
 
 // handles forgot password route functionality
-const forgotPassword = (req, res, next) => {
-    res.send ('Forgot Password Route')
+const forgotPassword = async (req, res, next) => {
+    // get the email from the request body
+    const { email } = req.body
+
+    try {
+        // see if the user exixts otherwise return an error
+        const user = await User.findOne ({ email })
+
+        if (!user) {
+            return next (new ErrorResponse ("Email could not be sent", 404))
+        }
+
+        // get the reset token to reset the password
+        const resetToken = user.getResetPasswordToken ()
+
+        //save the newly created resetPasswordToken field in the DB
+        await user.save ()
+
+        // create the reset URL
+        const resetUrl = `http://localhost:3000/passwordreset/${resetToken}`
+
+        const message = `
+            <h1>You have requested to reset the password </h1>
+            <p>Please go to this link to reset your password </p>
+            <a href = ${resetUrl} clicktracking = off>${resetUrl}</a>
+        `
+
+        // send the email
+
+        try {
+            await sendEmail ({
+                to: user.email,
+                subject: "Password Reset Request",
+                text: message
+            })
+
+            res.status (200).json ({ success: true, data: "Email Sent" })
+        } catch (err) {
+            user.resetPasswordToken = undefined
+            user.resetPasswordExpire = undefined
+
+            await user.save ()
+
+            return next (new ErrorResponse ("Email could not be sent", 500))
+        }
+    } catch (err) {
+        next (err)
+    }
 }
 
 
@@ -67,6 +114,10 @@ const resetPassword = (req, res, next) => {
 }
 
 
+
+
+// this function sends a token to define that user has signed in or registered a new account
+// authentication part
 const sendToken = (user, statusCode, res) => {
     const token = user.getSignedToken ()        // should return a token
     res.status (statusCode).json  ({ success: true, token })
