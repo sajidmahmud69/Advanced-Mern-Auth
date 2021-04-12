@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 import "./RegisterScreen.css"
@@ -11,6 +11,15 @@ function RegisterScreen({ history }) {
     const [confirmPassword, setConfirmPassword] = useState ("")
     const [error, setError] = useState ("")
     
+
+    useEffect (() => {
+        // if the user is already logged in just stay in that route or page
+        if (localStorage.getItem ("authToken")){
+            history.push ('/')
+        }
+    }, [history])
+
+
 
     const registerHandler = async (e) => {
         e.preventDefault ()
