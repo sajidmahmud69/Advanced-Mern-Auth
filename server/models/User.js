@@ -30,6 +30,12 @@ const UserSchema = mongoose.Schema ({
 })
 
 
+
+
+
+
+
+
 // Some utility function for Database
 
 // run this function before saving it into the DB
@@ -45,17 +51,36 @@ UserSchema.pre ("save", async function (next) {
 })
 
 
+
+
 UserSchema.methods.matchPassword = async function (password) {
     // password is provided by the user through the form and this.password is the password that DB found 
     // for that corresponding email
     return await bcrypt.compare (password, this.password)
 }
 
+
+
+
+
 UserSchema.methods.getSignedToken = function () {
     // getting a token for signing in
     return jwt.sign ({ id: this._id }, process.env.JWT_SECRET_KEY, { expiresIn: process.env.JWT_EXPIRE_TIME })
 }
 
+
+
+/* 
+    generate a reset password token and send it as a req.params in the frontend url
+    but at the same time get that token and hash it and save it in the db with an 
+    expiration date
+    
+    So, when next time when you want to reset the password get that token from the 
+    req.params front end url and hash it
+
+    This hash should match the one in the db which would indicate that that specifc
+    user has requested to reset their password
+*/
 UserSchema.methods.getResetPasswordToken  =  function () {
     // generate a reset token
     const resetToken = crypto.randomBytes (20).toString ('hex')

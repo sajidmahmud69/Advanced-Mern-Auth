@@ -2,6 +2,7 @@ import User from '../models/User.js'
 import ErrorResponse from '../utils/errorResponse.js'
 import errorResponse from '../utils/errorResponse.js'
 import sendEmail from '../utils/sendEmail.js'
+import crypto from 'crypto'
 
 
 // handles register route functionality
@@ -108,16 +109,42 @@ const forgotPassword = async (req, res, next) => {
 }
 
 
+
+
 // handles reset password route functionality
-const resetPassword = (req, res, next) => {
-    res.send ('Reset Password Route')
+const resetPassword = async (req, res, next) => {
+    // create a reset token
+    const resetPasswordToken = crypto.createHash ("sha256").update (req.params.resetPasswordToken).digest ('hex')
+
+    // search for a user who has the same token in the db
+    try {
+        const user = await User.findOne ({
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() }        // check that the expiration date is greater than current date
+        })
+
+        if (!user) {
+            return next (new ErrorResponse ("Invalid Reset Token", 400))
+        }
+
+        user.password = req.body.password
+        user.resetPasswordToken = undefined
+        user.resetPasswordExpire = undefined
+
+        await user.save ()
+
+        return res.status(201).json ({ success: true, data: "Password Reset successful" })
+    } catch (err) {
+        next (err)
+    }
+
 }
 
 
 
 
-// this function sends a token to define that user has signed in or registered a new account
 // authentication part
+// this function sends a token to define that user has signed in or registered a new account
 const sendToken = (user, statusCode, res) => {
     const token = user.getSignedToken ()        // should return a token
     res.status (statusCode).json  ({ success: true, token })
